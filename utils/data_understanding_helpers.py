@@ -35,6 +35,14 @@ def analyze_missing_values(df):
 
 
 def analyze_categorical_features(df):
+    """
+    Analyze and display categorical features in a DataFrame.
+
+    Parameters:
+    df (pandas.DataFrame): The DataFrame to analyze for categorical features.
+
+    This function identifies and prints the categorical features (columns with object data type) in the DataFrame.
+    """
     categorical_features = df.select_dtypes(include=['object']).columns
     print("\nCategorical Features Analysis:")
     print("Feature: {}".format(categorical_features))
