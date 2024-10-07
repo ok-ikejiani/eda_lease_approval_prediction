@@ -45,7 +45,16 @@ By answering this question, the company stands to gain significant benefits:
 
 ## Data Sources
 
-The data used in this project is provided by the Client. It includes historical application data, including features such as company size, industry sector, lease amount, years in operation, and interest rates. The data also includes information on the application outcome, with each application classified as approved or denied.
+There were two main data sources used in this project:
+
+### Client Database and Excel Files
+Historical application data extracted from the clients database and Excel files.
+
+### Bank of Canada Interest Rates
+Historical interest rates from the Bank of Canada used as a proxy for the cost of funds at the time of each application.  While not a perfect match, these rates closely reflect the trends in funders' cost of capital and can significantly impact approval decisions.
+
+[Download Bank of Canada Interest Rates](https://www.bankofcanada.ca/rates/interest-rates/canadian-interest-rates/)
+
 
 ## Methodology:
 
@@ -57,31 +66,52 @@ In the initial phase of the process, I focused on gaining a deep understanding o
 - I also analyzed the relationship between the interest rates and the approval status of the lease applications.
 
 ### Data Cleaning and Splitting:
-- I cleaned the data by removing missing values and outliers.
-- I split the dataset into training and test sets to evaluate model performance on unseen data effectively.
-- I used cross-validation techniques such as K-fold cross-validation to ensure that the model was generalizing well and not overfitting to the training data.
-- I also used SMOTE to handle the imbalance in the dataset.
+- Data was cleaned by dropping unused columns and rows with missing values.
+- The dataset was split into training and test sets to evaluate model performance on unseen data effectively.
+- Cross-validation was used to ensure that the model was generalizing well and not overfitting to the training data.
+- The funding data was found to be imbalanced, so SMOTE was used to generate synthetic data for the minority class. Undersampling was not used because it was found to be less effective than SMOTE.
 ### 2. Feature Engineering:
-- I created new features to enhance the model's predictive power by aggregating and transforming existing variables. For example:
-- I generated features like company size and lease history to derive more insights into lease application behavior.
-- I also created features that combined multiple variables to capture complex relationships between features.
+- Polynomial features were generated to capture nonlinear relationships between features.
+- Age was derived from the Incorporation Date.
 - Categorical variables were encoded using both ordinal and one-hot encoding to ensure proper handling by the models, and I standardized features to prepare them for machine learning algorithms.
 
 
 ### Model Selection:
-- I first trained a DummyClassifier model to get a baseline model to compare the performance of the other models.
-- I then trained multiple machine learning models to predict lease approvals, including Logistic Regression, KNN, Decision Trees, SVM, Random Forest.
+- A DummyClassifier model was trained to get a baseline model to compare the performance of the other models.
+- Multiple models were then trained and used to predict lease approvals, including Logistic Regression, KNN, Decision Trees, SVM, Random Forest.
 - Hyperparameter tuning was conducted using Grid Search to optimize model performance and ensure that the models were appropriately configured.
-- Finaly, a Bagging ensembale model was used to improve the performance of the top model.
+- Finally, a Bagging ensembale model was used to improve the performance of the top model.
   
 ### Model Evaluation:
-- I evaluated the trained models on various performance metrics such as accuracy, precision, recall, F1-score, and ROC-AUC to assess how well they balanced minimizing poor leads without missing opportunities. The primary metric used was *F1-score*. F1 Score was chosen because it is a balanced metric that considers both precision and recall, which are crucial for this project. While we want to miniminze the chances of approving poor leads, we also want to avoid missing opportunities to approve good leads which is why F1 Score is a good metric to use.
-- I analyzed feature importance to understand which factors, such as company location, annual revenue, and lease history, had the greatest impact on lease approval predictions.
-
+- The trained models were evalutated on various performance metrics such as accuracy, precision, recall, F1-score to assess how well they balanced minimizing poor leads without missing opportunities. The primary metric used was *F1-score*. F1 Score was chosen because it is a balanced metric that considers both precision and recall, which are crucial for this project. While we want to miniminze the chances of approving poor leads, we also want to avoid missing opportunities to approve good leads which is why F1 Score is a good metric to use.
+- Feature importance was also analyzed to understand which factors, such as company location, annual revenue, and lease history, had the greatest impact on lease approval predictions.
 
 
 ## Results
-The best performaning model was the Bagging model with a SVC model as the base estimator(F1 Score of 0.9).
+### Data Overview
+#### Lease Applications Data
+- The 'Lease Amount' column appears to be normally distributed, with a median of 100,000 and a mean of $124,951.
+- The 'Annual Revenue' column also has a few outliers, The majority of the companies have relatively low annual revenues, but there are some outliers with significantly higher revenues, which results in a skewed distribution.This insight is important because it indicates that revenue may not be evenly distributed across companies, and outliers could heavily influence statistical analyses like averages.
+- The 'Year Incorporated' column has a few outliers, with some companies reporting incorporation dates in the early 1960s.
+- The 'Lease Term' column appears to be evenly distributed, with most leases ranging from 1 to 5 years.
+- Data Quality Issues: Missing values in Equimpent Type, Buiness Type are all Corporations which does not aid in analysis
+- The target variable is imbalanced, with less denied applications than approved applications.
+
+#### Interest Rates Data
+- Observed Data: The interest rates show clear fluctuations over time. There are periods where the rates remain stable, followed by a noticeable decline, then a gradual rise.
+- Trend: The overall trend suggests a general decline in rates over the middle section of the observed period, followed by a slight increase toward the end.
+- Seasonality: The rates exhibit clear seasonality, with repeating patterns indicating that rates fluctuate in a predictable manner throughout the year.
+- Residuals: The residual plot reveals some irregular fluctuations, indicating that there are variations in the data that are not explained by the trend or seasonality. This might suggest the presence of external factors affecting the rates that are not captured in the decomposition.
+- Clusters in Rate Distribution: The rates are clustered around specific values (e.g., 0.75%, 0.50%, 2.00%), which could represent key interest rate levels set by central banks or other regulatory bodies. The spikes in the histogram could also point to economic interventions or rate adjustments.
+- Data Quality Issues: The presence of unusual labels like "Bank Holiday" in the rate distribution suggests there may be data entry inconsistencies that need to be addressed for further analysis.
+
+#### Combined Data
+- The heatmap reveals that none of the variables are strongly correlated with each other, with most correlation coefficients hovering around zero. This indicates that there are no obvious linear relationships between key variables such as Lease Amount, Annual Revenue, Year Incorporated, Lease Term, and Rate in the dataset.
+- The weak correlations suggest that other factors, perhaps non-linear relationships or external variables not included in this dataset, may be influencing lease decisions and outcomes.
+- The z-score analysis identified 195 outliers in the dataset, which could skew the results of the analysis if not addressed.
+
+### Best Performing Model
+The best performaning model was the Bagging model with a SVC model as the base estimator(F1 Score of 0.9). However, both the Random Forest tree and just the SVC model performed very similarly well, with the difference between F1 Scores being relatively small. 
 
 ![A table comparing the F1-Score of the best performing model and the DummyClassifier model](images/metrics_top_performing.jpg)
 ![A bar chart comparing the F1-Score of the best performing model and the DummyClassifier model](images/final_model_performance_comparision.png)
@@ -101,9 +131,28 @@ The feature importance plot shows that the most important features in predicting
 - Futher feature engineering techniques such as creating a new feature that combines multiple variables to capture complex relationships between features or removing features that had a negative impact on the model's performance.
 - Additonal hyperparameter tuning to improve the performance of the model.
 - Prepare the best performing model for deployment to be used by the client along side their current system(not to replace, but to test how well it is able to predict the approval of lease applications).
-- Investigate why the bagging model performance degrades when the estimator property is used instead of base estimator property.
+- Investigate inconsistency of bagging model performance that flucutates when the estimator property is used instead of base estimator property.
+- Explore other external factors that may have an impact on the approval of lease applications.
 
 ## Outline of project
 
-- [The EDA Notebook](predictive_leasing_approvals_exploratory_data_analysis.ipynb)
+*Root Folder:*
+- [The EDA Jupyter Notebook](predictive_leasing_approvals_exploratory_data_analysis.ipynb)
 
+*Data:*
+- [Application Data](data/funding_results.csv)
+- [The Bank of Canada Interest Rates](data/rates.csv)
+
+*Utils:*
+- Helper functions for the project that handle data cleaning, splitting, and evaluation.
+
+*Images*
+- Contains images used in the report of visualizations and tables.
+
+## Installed Dependencies
+
+### tabulate
+Tabulate is used to display tables in the terminal. To install it, run the following command:
+```
+pip install tabulate
+```
